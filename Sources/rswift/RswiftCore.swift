@@ -102,7 +102,7 @@ public struct RswiftCore {
             warning: warning
         )
 
-        try generateFromProjectResources(resources: resources, developmentRegion: nil, knownAssetTags: nil)
+        try generateFromProjectResources(resources: resources, developmentRegion: "en", knownAssetTags: nil)
     }
 
     private func generateFromProjectResources(resources: ProjectResources, developmentRegion: String?, knownAssetTags: [String]?) throws {
