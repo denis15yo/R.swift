@@ -40,7 +40,7 @@ extension Bundle {
                 } else {
                     language = locale.languageCode
                 }
-                if hostingBundle.localizations.contains(locale.identifier) {
+                if hostingBundle.localizations.contains(locale.identifier.lowercased()) {
                     if let language = language, hostingBundle.localizations.contains(language) {
                         return [locale.identifier, language]
                     } else {
@@ -70,6 +70,7 @@ extension Bundle {
 
         // Find first language for which table exists
         // Note: key might not exist in chosen language (in that case, key will be shown)
+        languages = languages.map { $0.lowercased() }
         for language in languages {
             if let lproj = hostingBundle.url(forResource: language, withExtension: "lproj"),
                let lbundle = Bundle(url: lproj)
