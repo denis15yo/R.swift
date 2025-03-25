@@ -2,21 +2,21 @@ name: Checks
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
     branches: '*'
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_14.0.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode-16.0.0.app/Contents/Developer
 
 jobs:
   unit-tests:
-    runs-on: macos-12
+    runs-on: self-hosted
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Pull cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .build
         key: ${{ runner.os }}spm${{ hashFiles('**/Package.resolved') }}
@@ -26,22 +26,23 @@ jobs:
       run: swift test -v
 
   test-iOS-ResourceApp:
-    runs-on: macos-12
+    runs-on: self-hosted
     needs: build-rswift
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download build
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name: rswift-dev
+        path: rswift-dev
     - name: Put build into place
       run: |
         mkdir -p .build/release
         mv rswift-dev/rswift .build/release/rswift
         chmod +x .build/release/rswift
     - name: Pull cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       id: podcache-ios
       with:
         path: Examples/ResourceApp/Pods
@@ -53,18 +54,19 @@ jobs:
       run: pod install --project-directory=Examples/ResourceApp
     - name: Test
       #run: fastlane scan --workspace "Examples/ResourceApp/ResourceApp.xcworkspace" --scheme "ResourceApp"
-      run: xcodebuild -workspace Examples/ResourceApp/ResourceApp.xcworkspace -scheme ResourceApp -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.0' test
+      run: xcodebuild -workspace Examples/ResourceApp/ResourceApp.xcworkspace -scheme ResourceApp -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' test
 
   test-iOS-StaticFrameworks:
-    runs-on: macos-12
+    runs-on: self-hosted
     needs: build-rswift
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download build
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name: rswift-dev
+        path: rswift-dev
     - name: Put build into place
       run: |
         mkdir -p .build/release
@@ -72,36 +74,38 @@ jobs:
         chmod +x .build/release/rswift
     - name: Test
       #run: fastlane scan --project "Examples/RswiftAppWithStaticFrameworks/RswiftAppWithStaticFrameworks.xcodeproj" --scheme "App"
-      run: xcodebuild -project Examples/RswiftAppWithStaticFrameworks/RswiftAppWithStaticFrameworks.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.0' test
+      run: xcodebuild -project Examples/RswiftAppWithStaticFrameworks/RswiftAppWithStaticFrameworks.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' test
 
   test-iOS-LocalizedStringApp:
-    runs-on: macos-12
+    runs-on: self-hosted
     needs: build-rswift
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download build
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name: rswift-dev
+        path: rswift-dev
     - name: Put build into place
       run: |
         mkdir -p .build/release
         mv rswift-dev/rswift .build/release/rswift
         chmod +x .build/release/rswift
     - name: Test
-      run: xcodebuild -project Examples/LocalizedStringApp/LocalizedStringApp.xcodeproj -scheme LocalizedStringApp -destination 'platform=iOS Simulator,name=iPhone 14,OS=16.0' test
+      run: xcodebuild -project Examples/LocalizedStringApp/LocalizedStringApp.xcodeproj -scheme LocalizedStringApp -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' test
 
   test-tvOS:
-    runs-on: macos-12
+    runs-on: self-hosted
     needs: build-rswift
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Download build
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4.1.7
       with:
         name: rswift-dev
+        path: rswift-dev
     - name: Put build into place
       run: |
         mkdir -p .build/release
@@ -109,15 +113,15 @@ jobs:
         chmod +x .build/release/rswift
     - name: Test
       #run: fastlane scan --project "Examples/RtvApp/RtvApp.xcodeproj" --scheme "ResourceApp-tvOS"
-      run: xcodebuild -project Examples/RtvApp/RtvApp.xcodeproj -scheme ResourceApp-tvOS -destination 'platform=tvOS Simulator,name=Apple TV,OS=16.0' test
+      run: xcodebuild -project Examples/RtvApp/RtvApp.xcodeproj -scheme ResourceApp-tvOS -destination 'platform=tvOS Simulator,name=Apple TV,OS=18.0' test
 
   build-rswift:
-    runs-on: macos-12
+    runs-on: self-hosted
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Pull cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .build
         key: ${{ runner.os }}spm${{ hashFiles('**/Package.resolved') }}
@@ -129,7 +133,7 @@ jobs:
     - name: Build
       run: swift build -v -c release
     - name: Store artifact
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: rswift-dev
         path: .build/release/rswift

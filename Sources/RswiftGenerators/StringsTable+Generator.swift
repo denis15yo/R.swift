@@ -10,11 +10,11 @@ import RswiftResources
 
 
 extension Struct {
-    public func generateBundleVarGetterForString(name: String) -> VarGetter {
+    public func generateBundleVarGetterForString() -> VarGetter {
         VarGetter(
             deploymentTarget: deploymentTarget,
-            name: SwiftIdentifier(name: name),
-            typeReference: TypeReference(module: .host, rawName: self.name.value),
+            name: name,
+            typeReference: TypeReference(module: .host, rawName: name.value),
             valueCodeString: ".init(bundle: bundle, preferredLanguages: nil, locale: nil)"
         )
     }
@@ -310,7 +310,7 @@ extension StringsTable {
             let fewParams = allParams.filter { $0.0 == badKey }.map { $0.1 }
 
             if let params = fewParams.first {
-                let locales = params.compactMap { $0.0.localeDescription }.joined(separator: ", ")
+                let locales = params.compactMap { $0.0.localeDescription }.sorted().joined(separator: ", ")
                 warning("Skipping string for key \(badKey) (\(filename)), format specifiers don't match for all locales: \(locales)")
             }
         }
@@ -407,10 +407,8 @@ private struct StringWithParams {
                 results.append("")
             }
 
-            let locales = values
-                .compactMap { $0.0.localeDescription }
-                .sorted()
-            results.append("Locales: \(locales.joined(separator: ", "))")
+            let locales = values.compactMap { $0.0.localeDescription }
+            results.append("Locales: \(locales.sorted().joined(separator: ", "))")
         }
 
         return results

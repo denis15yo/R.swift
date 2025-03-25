@@ -8,6 +8,12 @@
 
 import Foundation
 
+#if os(Linux)
+import Glibc
+#else
+import Darwin
+#endif
+
 public let GlobBehaviorBashV3 = Glob.Behavior(
     supportsGlobstar: false,
     includesFilesFromRootOfGlobstar: false,
@@ -36,7 +42,7 @@ public class Glob: Collection {
      * Different glob implementations have different behaviors, so the behavior of this
      * implementation is customizable.
      */
-    public struct Behavior {
+    public struct Behavior: Sendable {
         // If true then a globstar ("**") causes matching to be done recursively in subdirectories.
         // If false then "**" is treated the same as "*"
         let supportsGlobstar: Bool
@@ -53,7 +59,7 @@ public class Glob: Collection {
         let includesFilesInResultsIfTrailingSlash: Bool
     }
 
-    public static var defaultBehavior = GlobBehaviorBashV4
+    public static let defaultBehavior = GlobBehaviorBashV4
 
     public static let defaultBlacklistedDirectories = ["node_modules", "Pods"]
 
@@ -202,8 +208,8 @@ public class Glob: Collection {
     private func populateFiles(gt: glob_t, includeFiles: Bool) {
         let includeDirectories = behavior.includesDirectoriesInResults
 
-        for i in 0..<Int(gt.gl_matchc) {
-            if let path = String(validatingUTF8: gt.gl_pathv[i]!) {
+        for i in 0..<Int(gt.gl_pathc) {
+            if let path = String(validatingCString: gt.gl_pathv[i]!) {
                 if !includeFiles || !includeDirectories {
                     let isDirectory = self.isDirectory(path: path)
                     if (!includeFiles && !isDirectory) || (!includeDirectories && isDirectory) {

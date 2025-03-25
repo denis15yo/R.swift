@@ -209,7 +209,7 @@ public struct RswiftCore {
             }
 
             if generators.contains(.string), !stringStruct.isEmpty {
-                stringStruct.generateBundleVarGetterForString(name: "string")
+                stringStruct.generateBundleVarGetterForString()
                 stringStruct.generateBundleFunctionForString(name: "string")
                 stringStruct.generateLocaleFunctionForString(name: "string")
                 stringStruct.generatePreferredLanguagesFunctionForString(name: "string")
@@ -241,7 +241,7 @@ public struct RswiftCore {
             }
 
             if generators.contains(.entitlements), !entitlementsStruct.isEmpty {
-                entitlementsStruct.generateLetBinding()
+                entitlementsStruct.generateVarGetter()
                 entitlementsStruct
             }
 
@@ -258,12 +258,12 @@ public struct RswiftCore {
             }
 
             if generators.contains(.segue), !segueStruct.isEmpty {
-                segueStruct.generateLetBinding()
+                segueStruct.generateVarGetter()
                 segueStruct
             }
 
             if generators.contains(.id), !idStruct.isEmpty {
-                idStruct.generateLetBinding()
+                idStruct.generateVarGetter()
                 idStruct
             }
 
@@ -274,7 +274,7 @@ public struct RswiftCore {
             }
 
             if generators.contains(.reuseIdentifier), !reuseIdentifierStruct.isEmpty {
-                reuseIdentifierStruct.generateLetBinding()
+                reuseIdentifierStruct.generateVarGetter()
                 reuseIdentifierStruct
             }
 
@@ -289,6 +289,8 @@ public struct RswiftCore {
 
         if accessLevel == .publicLevel {
             s.setAccessControl(.public)
+
+            s.markSendable()
         }
 
         let imports = Set(s.allModuleReferences.compactMap(\.name))
@@ -328,5 +330,5 @@ public struct RswiftCore {
 private func writeIfChanged(contents: String, toURL outputURL: URL) throws {
     let currentFileContents = try? String(contentsOf: outputURL, encoding: .utf8)
     guard currentFileContents != contents else { return }
-    try contents.write(to: outputURL, atomically: true, encoding: .utf8)
+    try contents.write(to: outputURL, atomically: false, encoding: .utf8)
 }

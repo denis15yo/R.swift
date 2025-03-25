@@ -13,7 +13,7 @@ import XcodeEdit
 
 @main
 struct App: ParsableCommand {
-    static var configuration = CommandConfiguration(
+    static let configuration = CommandConfiguration(
         commandName: "rswift",
         abstract: "Generate static references for autocompleted resources like images, fonts and localized strings in Swift projects",
         version: Config.version,
@@ -58,14 +58,14 @@ struct GlobalOptions: ParsableArguments {
     var target: String?
 }
 
-private var generatorsString = ResourceType.allCases.map(\.rawValue).joined(separator: ", ")
+private let generatorsString = ResourceType.allCases.map(\.rawValue).joined(separator: ", ")
 private func parseGenerators(_ str: String) -> [ResourceType] {
     str.components(separatedBy: ",").map { ResourceType(rawValue: $0)! }
 }
 
 extension App {
     struct Generate: ParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Generates R.generated.swift file")
+        static let configuration = CommandConfiguration(abstract: "Generates R.generated.swift file")
 
         @OptionGroup
         var globals: GlobalOptions
@@ -77,7 +77,7 @@ extension App {
         var outputPath: String
 
         mutating func run() throws {
-            let processInfo = ProcessInfo()
+            let processInfo = ProcessInfo.processInfo
 
             let productModuleName = processInfo.environment[EnvironmentKeys.productModuleName]
             let infoPlistFile = processInfo.environment[EnvironmentKeys.infoPlistFile]
@@ -114,7 +114,8 @@ extension App {
             do {
                 switch globals.inputType {
                 case .xcodeproj:
-                    let xcodeprojPath = try xcodeproj ?? ProcessInfo().environmentVariable(name: EnvironmentKeys.productFilePath)
+                    let xcodeprojPath = try xcodeproj ?? ProcessInfo.processInfo
+                        .environmentVariable(name: EnvironmentKeys.productFilePath)
                     let xcodeprojURL = URL(fileURLWithPath: xcodeprojPath)
                     let targetName = try getTargetName(xcodeprojURL: xcodeprojURL)
                     try core.generateFromXcodeproj(url: xcodeprojURL, targetName: targetName)
@@ -128,7 +129,8 @@ extension App {
         }
 
         func getTargetName(xcodeprojURL: URL) throws -> String {
-            if let targetName = globals.target ?? ProcessInfo().environment[EnvironmentKeys.targetName] {
+            if let targetName = globals.target ?? ProcessInfo.processInfo
+                .environment[EnvironmentKeys.targetName] {
                 return targetName
             }
 
@@ -159,7 +161,7 @@ extension App {
 
 extension App {
     struct ModifyXcodePackages: ParsableCommand {
-        static var configuration = CommandConfiguration(abstract: "Modifies Xcode project to fix package reference for plugins")
+        static let configuration = CommandConfiguration(abstract: "Modifies Xcode project to fix package reference for plugins")
 
         @Option(help: "Path to xcodeproj file")
         var xcodeproj: String

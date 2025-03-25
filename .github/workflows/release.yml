@@ -5,14 +5,14 @@ on:
     types: created
 
 env:
-  DEVELOPER_DIR: /Applications/Xcode_14.0.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode-16.0.0.app/Contents/Developer
 
 jobs:
   release-build:
     runs-on: self-hosted
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set version
       run: |
         sed -i "" "s/\(static let version = \"\).*\(\"\)/\1${TAG}\2/" Sources/rswift/Config.swift
@@ -37,11 +37,11 @@ jobs:
       run: |
         swift build -c release --arch x86_64 --arch arm64
 
-    - name: Delete temp keychain
+    - name: Delete temp keychain from previous run
       run: |
         /usr/bin/security delete-keychain signing_temp.keychain || true
     - name: Import Signing Certificates
-      uses: apple-actions/import-codesign-certs@v1
+      uses: apple-actions/import-codesign-certs@v3
       with:
         p12-file-base64: ${{ secrets.APPLE_CERTIFICATES }}
         p12-password: ${{ secrets.APPLE_CERTIFICATES_PASSWORD }}
@@ -51,7 +51,7 @@ jobs:
       env:
         IDENTITY: 'Developer ID Application: Nonstrict B.V. (WT5N9FK54M)'
     - name: Store build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: rswift-${{ github.event.release.tag_name }}
         path: .build/apple/Products/Release/rswift
@@ -163,14 +163,15 @@ jobs:
         asset_name: rswift-${{ github.event.release.tag_name }}.pkg
         asset_content_type: application/pkg
 
-#    - name: Publish to Cocoapods
-#      run: |
-#        export POD_VERSION=$TAG_NAME
-#        pod trunk push --allow-warnings
-#      env:
-#        TAG_NAME: ${{ github.event.release.tag_name }}
-#        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+    - name: Delete temp keychain from this run
+      if: always()
+      run: |
+        /usr/bin/security delete-keychain signing_temp.keychain || true
 
-    - name: Publish to Homebrew
-      run: brew bump-formula-pr --tag $TAG_NAME --revision $REVISION rswift || exit 0
-
+    - name: Publish to Cocoapods
+      run: |
+        export POD_VERSION=$TAG_NAME
+        pod trunk push --allow-warnings
+      env:
+        TAG_NAME: ${{ github.event.release.tag_name }}
+        COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
